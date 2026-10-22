@@ -1,0 +1,109 @@
+module CU
+
+( input trig,
+input [3:0] value,
+output IUAU, loadR, addSub, loadB, loadA, reset,
+output [3:0] state);
+
+logic [3:0] nextstate;
+parameter s0 = 3'b000, s1 = 3'b001, s2 = 3'b010, s3 = 3'b011, s4 = 3'b100;
+
+always_ff @ state begin
+
+    case(state)
+        s0: begin
+				IUAU = 1'b0;
+				
+            if (trig && (value != 10 && value != 11)) nextstate = s1; 
+				else nextstate = s0;
+				
+				loadR = 1'b1;
+            addSub = 1'b0;
+            loadB = 1'b1;
+            loadA = 1'b1;
+            reset = 1'b1;
+        end
+
+        s1: begin
+				IUAU = 1'b0;
+				
+            if (trig && (value == 10 || value == 11)) 
+					begin
+					   loadA = 1'b0;
+						reset = 1'b0;
+						nextstate = s2;
+					end
+				else 
+					begin
+						reset = 1'b1;
+						nextstate = s1;
+					end
+				if (value == 11) addSub = 1'b1;
+            else addSub = 1'b0; 
+            loadR = 1'b1; 
+            loadB = 1'b1;  
+				 
+        end 
+        
+        s2: begin
+            IUAU = 1'b0;
+				
+            if (trig && (value != 15))
+				begin
+						nextstate = s3;
+					end
+				else 
+					begin
+						nextstate = s3;
+					end
+				addSub = addSub;
+				loadR = 1'b1;
+            loadB = 1'b1;
+            loadA = 1'b1;
+				reset = 1'b1;
+        end
+		  
+        s3: begin
+            IUAU = 1'b0;
+ 
+            if (trig && (value == 15)) 				
+				begin
+						reset = 1'b0;
+						loadB = 1'b0;
+						nextstate = s4;
+					end
+				else 
+					begin
+						reset = 1'b1;
+						nextstate = s3;
+					end
+            loadR = 1'b1;
+				addSub = addSub;
+            loadA = 1'b1;
+        end
+
+        s4: begin
+            IUAU = 1'b1;
+            
+            nextstate = s4; 
+
+            loadR = 1'b0;
+				addSub = addSub;
+            loadB = 1'b1;
+            loadA = 1'b1;
+            reset = 1'b1; 
+        end
+
+        default: begin
+				IUAU = 1'b0;
+            nextstate = s0;
+            loadR = 1'b0;
+            addSub = 1'b0;
+            loadB = 1'b0;
+            loadA = 1'b0;
+            reset = 1'b0;
+            
+        end
+    endcase
+end
+endmodule
